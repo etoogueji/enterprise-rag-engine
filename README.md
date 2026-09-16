@@ -1,14 +1,25 @@
-# Enterprise RAG with Hybrid Search & Evaluation Engine
+# Enterprise RAG Engine with Dynamic Routing & Hybrid Search
 
-## Document intelligence system for specific domains (e.g., medical guidelines, legal contracts, or technical documentation) which handles complex queries with GUARANTEED accuracy
+A production-grade Document Intelligence System featuring Hybrid Vector/Sparse Retrieval, Cross-Encoder Re-ranking, and dynamic agentic routing managed by LangGraph.
 
-### Key Architecture & Technical Stack:
-- __Ingestion & Processing__: Pandas is used for heavy PDF/unstructured textual datasets, breaking them down into chunking hierarchies (parent-child chunking)
+## System Architecture
 
-- __Hybrid Search Retrieval__: A dual-retrieval pipeline combining __Dense Search__ (vector embeddings using Qdrant or Pinecone) and Sparse Search (BM25 via Elasticsearch/Typesense) re-ranked using a Cross-Encoder
-
-- __LLM Orchestration__: LangGraph to manage cyclic agent state transitions (handling fallback strategies when retrieval confidence is low)
-
-- __Evaluation__: An automated evaluation pipeline using Ragas or Trulens to measure _Faithfulness_, *Answer Relevance*, and _Context Precision_
-
-### In summary, instead of just returning basic vector search results, it will route complex queries, combine dense vector embeddings with sparse keyword search (BM25), re-rank the retrieved passages, and run continuous evaluation to prove zero hallucination (incorrect/fabricated output from an LLM)
+```text
+[ User Query ]
+       │
+       ▼
+[ LangGraph Router Node ] ────► (General Conversation) ──► [ Direct LLM Response ]
+       │
+       ▼ (Technical / Enterprise Query)
+[ Hybrid Search Engine ]
+   ├── Dense Retrieval (Qdrant Vector DB / all-MiniLM-L6-v2)
+   └── Sparse Retrieval (BM25 Lexical Keyword Matching)
+       │
+       ▼
+[ Reciprocal Rank Fusion (RRF) ]
+       │
+       ▼
+[ Cross-Encoder Re-Ranker (bge-reranker-base) ]
+       │
+       ▼
+[ Parent Context Assembler ] ──► [ LLM Synthesis (Groq Llama-3) ] ──► [ Output ]
